@@ -13,7 +13,7 @@ try {
     }).then(url => {
         console.log(`Server is running on ${url}`);
         nodemon({
-            script: './src/index.js',
+            script: './index.js',
             ext: 'js json',
             env: {
                 TOKEN,
