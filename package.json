@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint . --fix",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "ngrok:dev": "node dev.js",
@@ -20,6 +21,10 @@
     "sequelize": "^6.21.3"
   },
   "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-security": "^1.5.0",
     "ngrok": "^4.3.1",
     "nodemon": "^2.0.19"
   }
