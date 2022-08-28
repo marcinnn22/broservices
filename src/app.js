@@ -6,7 +6,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-  res.send(`Hello World!, process.pid: ${process.pid}`);
+  console.log(`Request received Process id: ${process.pid}`);
+  res.json(`Hello World!, process.pid: ${process.pid}`).status(200);
 });
 
 module.exports = app;

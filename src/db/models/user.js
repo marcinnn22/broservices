@@ -15,41 +15,44 @@ module.exports = (sequelize, DataTypes) => {
       });
     }
   }
-  User.init({
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    emailVerified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-  }, {
-    sequelize,
-    modelName: 'User',
-    // exclude password
-    exclude: ['password'],
-    // include password with a custom getter
-    getterMethods: {
-      password() {
-        return this.getDataValue('password');
+  User.init(
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      emailVerified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
     },
-  });
+    {
+      sequelize,
+      modelName: 'User',
+      // exclude password
+      exclude: ['password'],
+      // include password with a custom getter
+      getterMethods: {
+        password() {
+          return this.getDataValue('password');
+        },
+      },
+    }
+  );
   return User;
 };
