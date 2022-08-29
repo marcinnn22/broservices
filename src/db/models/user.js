@@ -44,12 +44,12 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'User',
-      // exclude password
-      exclude: ['password'],
-      // include password with a custom getter
-      getterMethods: {
-        password() {
-          return this.getDataValue('password');
+      defaultScope: {
+        attributes: { exclude: ['password'] },
+      },
+      scopes: {
+        withPassword: {
+          attributes: { include: ['password'] },
         },
       },
     }
