@@ -12,7 +12,7 @@ app.use('/v1', routes);
 app
   .all('*', (req, res) => {
     res.status(404).json({
-      message: 'Not Found',
+      message: '404 Not Found',
     });
   })
   .use(errorHandler);
