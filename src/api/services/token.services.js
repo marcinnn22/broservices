@@ -26,27 +26,29 @@ const saveTokens = async (userId, token, expires, type, blacklisted = false) => 
 };
 
 const verifyToken = async (token, type) => {
-  const payload = jwt.verify(token, process.env.JWT_TOKEN_SECRET);
-  if (payload.type !== type) {
-    throw new ApiError('Invalid token type', 401);
-  }
-  const tokenData = await Token.findOne({
-    where: {
-      token,
-      type,
-      userId: payload.sub,
-    },
-  });
-  if (!tokenData) {
+  try {
+    const payload = jwt.verify(token, process.env.JWT_TOKEN_SECRET);
+    if (payload.type !== type) {
+      throw new ApiError('Invalid token type', 401);
+    }
+    const tokenData = await Token.findOne({
+      where: {
+        token,
+        type,
+        userId: payload.sub,
+        blacklisted: false,
+      },
+    });
+    if (!tokenData) {
+      throw new ApiError('Token not found', 404);
+    }
+    if (tokenData.expiresAt < new Date()) {
+      throw new ApiError('Token expired', 401);
+    }
+    return tokenData;
+  } catch (error) {
     throw new ApiError('Invalid token', 401);
   }
-  if (tokenData.blacklisted) {
-    throw new ApiError('Token blacklisted', 401);
-  }
-  if (tokenData.expiresAt < new Date()) {
-    throw new ApiError('Token expired', 401);
-  }
-  return tokenData;
 };
 
 const revokeTokens = async (refreshToken) => {
