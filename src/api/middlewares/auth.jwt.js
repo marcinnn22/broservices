@@ -1,24 +1,19 @@
 const { tokenService } = require('../services');
 const { tokenTypes } = require('../configs/token.config');
+const ApiError = require('../utils/ApiError');
 
 module.exports = {
   auth: async (req, res, next) => {
-    const token = req.body.refreshToken;
-    if (!token) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'No token provided',
-      });
+    try {
+      const token = req.body.refreshToken;
+      if (!token) {
+        throw new ApiError('No token provided', 400);
+      }
+      const result = await tokenService.verifyToken(token, tokenTypes.REFRESH);
+      req.user = result;
+      next();
+    } catch (error) {
+      next(error);
     }
-    const result = await tokenService.verifyToken(token, tokenTypes.REFRESH);
-    // @TODO: handle jwt invalid token error
-    if (!result) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Unauthorized',
-      });
-    }
-    req.user = result;
-    next();
   },
 };
