@@ -27,6 +27,7 @@
     "joi": "^17.6.2",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.3.3",
+    "nodemailer": "^6.8.0",
     "sequelize": "^6.21.3"
   },
   "devDependencies": {
