@@ -60,6 +60,30 @@ const getUsers = async () => {
   return users;
 };
 
+const updateUserPassword = async (id, password) => {
+  const user = await User.findOne({
+    where: { id },
+  });
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+  user.password = await hashPassword(password);
+  await user.save();
+  return user;
+};
+
+const updateUserEmailVerified = async (id) => {
+  const user = await User.findOne({
+    where: { id },
+  });
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+  user.emailVerified = true;
+  await user.save();
+  return user;
+};
+
 module.exports = {
   createUser,
   compareUserPassword,
@@ -68,4 +92,6 @@ module.exports = {
   getUserbyEmail,
   getUserbyId,
   getUsers,
+  updateUserPassword,
+  updateUserEmailVerified,
 };

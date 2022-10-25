@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { Token } = require('../../db/models');
 const { tokenTypes } = require('../configs/token.config');
+const userServices = require('./user.services');
 const ApiError = require('../utils/ApiError');
 
 const generateToken = (userId, expires, type, secret = process.env.JWT_TOKEN_SECRET) => {
@@ -76,6 +77,15 @@ const revokeTokenbyUserId = async (userId) => {
   });
 };
 
+const revokeTokenbyType = async (userId, type) => {
+  await Token.destroy({
+    where: {
+      userId,
+      type,
+    },
+  });
+};
+
 const generateAuthTokens = async (user) => {
   const accessTokenExpires = Date.now() + 1000 * 60 * 60 * 24; // 1 day
   const refreshTokenExpires = Date.now() + 1000 * 60 * 60 * 24 * 7; // 1 week
@@ -98,11 +108,36 @@ const generateAuthTokens = async (user) => {
   };
 };
 
+const generateResetPasswordToken = async (email) => {
+  const user = await userServices.getUserbyEmail(email);
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+  const expires = Date.now() + 1000 * 60 * 10; // 10 minutes
+  const resetPasswordToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD);
+  await saveTokens(user.id, resetPasswordToken, expires, tokenTypes.RESET_PASSWORD);
+  return resetPasswordToken;
+};
+
+const generateVerifyEmailToken = async (email) => {
+  const user = await userServices.getUserbyEmail(email);
+  if (!user) {
+    throw new ApiError('User not found', 404);
+  }
+  const expires = Date.now() + 1000 * 60 * 10; // 10 minutes
+  const verifyEmailToken = generateToken(user.id, expires, tokenTypes.VERIFY_EMAIL);
+  await saveTokens(user.id, verifyEmailToken, expires, tokenTypes.VERIFY_EMAIL);
+  return verifyEmailToken;
+};
+
 module.exports = {
   generateToken,
   saveTokens,
   verifyToken,
   revokeTokens,
   revokeTokenbyUserId,
+  revokeTokenbyType,
   generateAuthTokens,
+  generateResetPasswordToken,
+  generateVerifyEmailToken,
 };

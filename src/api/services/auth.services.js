@@ -40,8 +40,30 @@ const refreshAuth = async (refreshToken) => {
   return tokens;
 };
 
+const resetPassword = async (resetToken, newPassword) => {
+  try {
+    const resetTokenData = await tokenService.verifyToken(resetToken, tokenTypes.RESET_PASSWORD);
+    await userService.updateUserPassword(resetTokenData.userId, newPassword);
+    await tokenService.revokeTokenbyType(resetTokenData.userId, tokenTypes.RESET_PASSWORD);
+  } catch (error) {
+    throw new ApiError('Invalid or expired reset password token', 400);
+  }
+};
+
+const verifyEmail = async (verifyToken) => {
+  try {
+    const verifyTokenData = await tokenService.verifyToken(verifyToken, tokenTypes.VERIFY_EMAIL);
+    await userService.updateUserEmailVerified(verifyTokenData.userId);
+    await tokenService.revokeTokenbyType(verifyTokenData.userId, tokenTypes.VERIFY_EMAIL);
+  } catch (error) {
+    throw new ApiError('Invalid or expired verify email token', 400);
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   refreshAuth,
+  resetPassword,
+  verifyEmail,
 };
