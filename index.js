@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'development') {
 } else if (cluster.isMaster) {
   console.log('This is the master process:', process.pid);
   sequelize
-    .sync({ force: true })
+    .authenticate()
     .then(() => {
       for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
