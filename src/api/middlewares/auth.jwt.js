@@ -1,4 +1,4 @@
-const { tokenService } = require('../services');
+const { tokenService, userService } = require('../services');
 const { tokenTypes } = require('../configs/token.config');
 const ApiError = require('../utils/ApiError');
 
@@ -10,7 +10,11 @@ module.exports = {
         throw new ApiError('No token provided', 400);
       }
       const result = await tokenService.verifyToken(token, tokenTypes.REFRESH);
-      req.user = result;
+      const user = await userService.getUserbyId(result.userId);
+      if (!user) {
+        throw new ApiError('User not found', 404);
+      }
+      req.user = user;
       next();
     } catch (error) {
       next(error);
