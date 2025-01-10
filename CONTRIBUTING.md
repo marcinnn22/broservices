@@ -29,7 +29,7 @@ This project adheres to a Code of Conduct that all contributors are expected to 
 1. Fork the repository
 2. Clone your fork:
 ```bash
-git clone https://github.com/your-username/express-boilerplate.git
+git clone https://github.com/mzubair481/express-boilerplate.git
 ```
 3. Create a new branch:
 ```bash

@@ -1,5 +1,7 @@
 # Express TypeScript Boilerplate
 
+> 🚀 A modern, production-ready Express.js starter template built with TypeScript. Features JWT authentication, Prisma ORM, comprehensive testing, Docker support, and monitoring tools. Perfect for building scalable and secure REST APIs.
+
 A production-ready Express.js boilerplate with TypeScript, featuring robust authentication, logging, monitoring, and best practices for building secure and scalable APIs.
 
 ## Features
@@ -45,7 +47,7 @@ A production-ready Express.js boilerplate with TypeScript, featuring robust auth
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/express-boilerplate.git
+git clone https://github.com/mzubair481/express-boilerplate.git
 cd express-boilerplate
 ```
 
