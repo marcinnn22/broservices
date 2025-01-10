@@ -7,6 +7,8 @@ CREATE TABLE `user` (
     `refreshToken` TEXT NULL,
     `role` ENUM('ADMIN', 'USER') NOT NULL DEFAULT 'USER',
     `emailVerified` DATETIME(3) NULL,
+    `emailVerificationToken` VARCHAR(100) NULL,
+    `emailVerificationExpires` DATETIME(3) NULL,
     `image` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,

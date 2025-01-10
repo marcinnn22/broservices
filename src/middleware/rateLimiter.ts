@@ -9,6 +9,10 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  keyGenerator: (req) => {
+    return req.ip || req.headers['x-forwarded-for'] as string;
+  },
+  skipSuccessfulRequests: true // Only count failed attempts
 });
 
 export const apiLimiter = rateLimit({
@@ -20,4 +24,13 @@ export const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+});
+
+export const verificationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 attempts per hour
+  message: {
+    success: false,
+    message: "Too many verification attempts, please try again later",
+  },
 });

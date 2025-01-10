@@ -1,16 +1,19 @@
 import { PrismaClient } from "@prisma/client";
+import { ENV } from "@/config/env";
 
 const prisma = new PrismaClient({
-  log: ["query", "error", "warn"],
+  // log only in development
+  log: ENV.NODE_ENV === "development" ? ["query", "error", "warn"] : [],
   datasources: {
     db: {
-      url: process.env.MYSQL_DATABASE_URL,
+      url: ENV.MYSQL_DATABASE_URL,
     },
   },
 });
 
 // Soft shutdown handler
 const handleShutdown = async () => {
+  console.log("Shutting down database connection");
   await prisma.$disconnect();
 };
 

@@ -115,4 +115,39 @@ export class AuthController {
       );
     }
   };
+
+  verifyEmail = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { token } = req.params;
+      const result = await this.authService.verifyEmail(token);
+      ApiResponse.success(res, "Email verified successfully", result);
+    } catch (error) {
+      const handledError = ErrorHandler.handle(error, "AuthController.verifyEmail");
+      ApiResponse.error(
+        res,
+        handledError.message,
+        handledError.statusCode,
+        handledError.code
+      );
+    }
+  };
+
+  resendVerification = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body;
+      const result = await this.authService.resendVerificationEmail(email);
+      ApiResponse.success(res, "Verification email sent", result);
+    } catch (error) {
+      const handledError = ErrorHandler.handle(
+        error,
+        "AuthController.resendVerification"
+      );
+      ApiResponse.error(
+        res,
+        handledError.message,
+        handledError.statusCode,
+        handledError.code
+      );
+    }
+  };
 }

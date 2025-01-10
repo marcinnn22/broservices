@@ -49,7 +49,7 @@ app.use("/api", apiLimiter);
 
 // Routes
 app.get("/", (req, res) => {
-  res.json({ message: "Hello from express-boilerplate Backend! " });
+  res.json({ message: "🚀 Hello from express-boilerplate Backend!" });
 });
 
 // Health Check

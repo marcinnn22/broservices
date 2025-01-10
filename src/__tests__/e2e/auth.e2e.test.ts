@@ -52,4 +52,31 @@ describe("Auth endpoints", () => {
       expect(response.body.data).toHaveProperty("accessToken");
     });
   });
+
+  describe("Email verification", () => {
+    it("should verify email with valid token", async () => {
+      // Create user with verification token
+      const user = await prisma.user.create({
+        data: {
+          email: "test@example.com",
+          name: "Test User",
+          password: await bcrypt.hash("Password123!", 10),
+          emailVerificationToken: "test-token",
+          emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      });
+
+      const response = await testApp
+        .get("/api/auth/verify-email/test-token")
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      
+      // Check user is verified
+      const verifiedUser = await prisma.user.findUnique({
+        where: { id: user.id }
+      });
+      expect(verifiedUser?.emailVerified).toBeTruthy();
+    });
+  });
 });

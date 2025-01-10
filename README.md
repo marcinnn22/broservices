@@ -122,20 +122,65 @@ This will start:
 
 API endpoints are documented using REST client files located in the `requests/` directory. These can be used with VS Code's REST Client extension.
 
-### Main Endpoints:
+### Authentication Endpoints:
 
-- Auth
+- Registration & Login
   - POST `/api/auth/signup` - Register new user
   - POST `/api/auth/login` - User login
   - POST `/api/auth/refresh` - Refresh access token
   - POST `/api/auth/logout` - User logout
 
-- Users
+- Email Verification
+  - GET `/api/auth/verify-email/:token` - Verify email address
+  - POST `/api/auth/send-email-verification` - Resend verification email
+
+### User Management:
+
+- Users (Protected Routes)
   - GET `/api/users` - Get all users (Admin only)
   - GET `/api/users/:id` - Get user by ID
   - POST `/api/users` - Create user (Admin only)
   - PATCH `/api/users/:id` - Update user (Admin only)
   - DELETE `/api/users/:id` - Delete user (Admin only)
+
+### Monitoring & Health:
+
+- System
+  - GET `/health` - Service health check
+  - GET `/monitoring/metrics` - Prometheus metrics
+
+### Request Format Examples:
+
+```bash
+# Sign Up
+POST /api/auth/signup
+{
+    "email": "user@example.com",
+    "name": "John Doe",
+    "password": "Password123!"
+}
+
+# Login
+POST /api/auth/login
+{
+    "email": "user@example.com",
+    "password": "Password123!"
+}
+
+# Resend Verification Email
+POST /api/auth/send-email-verification
+{
+    "email": "user@example.com"
+}
+```
+
+### Authentication Flow:
+
+1. User signs up → Verification email sent
+2. User verifies email via link
+3. User can now login
+4. Login returns access & refresh tokens
+5. Use access token in Authorization header: `Bearer <token>`
 
 ## Contributing
 

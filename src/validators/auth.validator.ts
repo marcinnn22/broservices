@@ -27,3 +27,15 @@ export const refreshTokenSchema = z.object({
     refreshToken: z.string().min(1, "Refresh token is required"),
   }),
 });
+
+export const resendVerificationSchema = z.object({
+  body: z.object({
+    email: z.string().email("Invalid email address"),
+  }),
+});
+
+export const verifyEmailSchema = z.object({
+  params: z.object({
+    token: z.string().min(1, "Verification token is required"),
+  }),
+});

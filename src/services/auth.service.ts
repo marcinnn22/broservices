@@ -5,10 +5,22 @@ import { ENV } from "@/config/env";
 import { AppError } from "@/utils/appError";
 import { logger } from "@/config/logger";
 import { ErrorCode } from "@/utils/errorCodes";
+import crypto from "crypto";
+import { EmailService } from "./email.service";
 
 const prisma = new PrismaClient();
 
 export class AuthService {
+  private emailService: EmailService;
+
+  constructor() {
+    this.emailService = new EmailService();
+  }
+
+  private generateVerificationToken(): string {
+    return crypto.randomBytes(32).toString("hex");
+  }
+
   async signup(email: string, name: string, password: string) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -16,11 +28,16 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = this.generateVerificationToken();
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     const user = await prisma.user.create({
       data: {
         email,
         name,
         password: hashedPassword,
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: verificationExpires,
       },
       select: {
         id: true,
@@ -31,7 +48,94 @@ export class AuthService {
       },
     });
 
+    // Send verification email
+    await this.emailService.sendVerificationEmail(email, name, verificationToken);
+
     return user;
+  }
+
+  async verifyEmail(token: string) {
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerificationToken: token,
+        emailVerificationExpires: {
+          gt: new Date(),
+        },
+        emailVerified: null,
+      },
+    });
+
+    if (!user) {
+      throw new AppError(
+        "Invalid or expired verification token",
+        400,
+        ErrorCode.INVALID_TOKEN
+      );
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: new Date(),
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+      },
+    });
+
+    return { message: "Email verified successfully" };
+  }
+
+  private async cleanupExpiredTokens() {
+    await prisma.user.updateMany({
+      where: {
+        emailVerificationExpires: {
+          lt: new Date(),
+        },
+        emailVerified: null,
+      },
+      data: {
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+      },
+    });
+  }
+
+  async resendVerificationEmail(email: string) {
+    // Clean up expired tokens first
+    await this.cleanupExpiredTokens();
+    
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    if (!user) {
+      throw new AppError("User not found", 404, ErrorCode.NOT_FOUND);
+    }
+
+    if (user.emailVerified) {
+      throw new AppError(
+        "Email is already verified",
+        400,
+        ErrorCode.INVALID_REQUEST
+      );
+    }
+
+    const verificationToken = this.generateVerificationToken();
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      user.name,
+      verificationToken
+    );
+
+    return { message: "Verification email sent" };
   }
 
   async login(email: string, password: string) {
@@ -41,6 +145,14 @@ export class AuthService {
         "Invalid credentials",
         401,
         ErrorCode.INVALID_CREDENTIALS
+      );
+    }
+
+    if (!user.emailVerified) {
+      throw new AppError(
+        "Please verify your email before logging in",
+        401,
+        ErrorCode.UNAUTHORIZED
       );
     }
 

@@ -14,6 +14,7 @@ export enum ErrorCode {
   MISSING_REQUIRED_FIELD = "ERR_3002",
   INVALID_EMAIL = "ERR_3003",
   INVALID_PASSWORD = "ERR_3004",
+  INVALID_REQUEST = "ERR_3005",
 
   // Resource Errors (4xxx)
   NOT_FOUND = "ERR_4001",
