@@ -1,0 +1,11 @@
+groups:
+  - name: express_rules
+    rules:
+      - record: job:http_requests_total:rate5m
+        expr: rate(http_requests_total[5m])
+      
+      - record: job:http_request_duration_seconds:p95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))
+      
+      - record: job:errors_total:rate5m
+        expr: rate(http_requests_total{status=~"5.*"}[5m]) 
