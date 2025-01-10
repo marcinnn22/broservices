@@ -150,4 +150,43 @@ export class AuthController {
       );
     }
   };
+
+  forgotPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body;
+      const result = await this.authService.forgotPassword(email);
+      ApiResponse.success(res, "Password reset email sent", result);
+    } catch (error) {
+      const handledError = ErrorHandler.handle(
+        error,
+        "AuthController.forgotPassword"
+      );
+      ApiResponse.error(
+        res,
+        handledError.message,
+        handledError.statusCode,
+        handledError.code
+      );
+    }
+  };
+
+  resetPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { token } = req.params;
+      const { password } = req.body;
+      const result = await this.authService.resetPassword(token, password);
+      ApiResponse.success(res, "Password reset successfully", result);
+    } catch (error) {
+      const handledError = ErrorHandler.handle(
+        error,
+        "AuthController.resetPassword"
+      );
+      ApiResponse.error(
+        res,
+        handledError.message,
+        handledError.statusCode,
+        handledError.code
+      );
+    }
+  };
 }

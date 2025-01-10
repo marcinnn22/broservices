@@ -2,7 +2,7 @@ import { Router } from "express";
 import { AuthController } from "@/controllers/auth.controller";
 import { AuthService } from "@/services/auth.service";
 import { validateRequest } from "@/middleware/validateRequest";
-import { loginSchema, signupSchema, verifyEmailSchema, resendVerificationSchema } from "@/validators/auth.validator";
+import { loginSchema, signupSchema, verifyEmailSchema, resendVerificationSchema, forgotPasswordSchema, resetPasswordSchema } from "@/validators/auth.validator";
 import { requireAuth } from "@/middleware/authMiddleware";
 import { verificationLimiter } from "@/middleware/rateLimiter";
 
@@ -27,6 +27,16 @@ router.post(
   verificationLimiter,
   validateRequest(resendVerificationSchema),
   authController.resendVerification
+);
+router.post(
+  "/forgot-password",
+  validateRequest(forgotPasswordSchema),
+  authController.forgotPassword
+);
+router.post(
+  "/reset-password/:token",
+  validateRequest(resetPasswordSchema),
+  authController.resetPassword
 );
 
 export default router;

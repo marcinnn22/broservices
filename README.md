@@ -134,6 +134,10 @@ API endpoints are documented using REST client files located in the `requests/` 
   - GET `/api/auth/verify-email/:token` - Verify email address
   - POST `/api/auth/send-email-verification` - Resend verification email
 
+- Password Reset
+  - POST `/api/auth/forgot-password` - Request password reset email
+  - POST `/api/auth/reset-password/:token` - Reset password with token
+
 ### User Management:
 
 - Users (Protected Routes)
@@ -172,6 +176,18 @@ POST /api/auth/send-email-verification
 {
     "email": "user@example.com"
 }
+
+# Request Password Reset
+POST /api/auth/forgot-password
+{
+    "email": "user@example.com"
+}
+
+# Reset Password
+POST /api/auth/reset-password/:token
+{
+    "password": "NewPassword123!"
+}
 ```
 
 ### Authentication Flow:
@@ -181,6 +197,13 @@ POST /api/auth/send-email-verification
 3. User can now login
 4. Login returns access & refresh tokens
 5. Use access token in Authorization header: `Bearer <token>`
+
+### Password Reset Flow:
+
+1. User requests password reset → Reset email sent
+2. User clicks reset link in email
+3. User sets new password using reset token
+4. User can login with new password
 
 ## Contributing
 

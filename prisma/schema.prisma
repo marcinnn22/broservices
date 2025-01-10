@@ -17,6 +17,8 @@ model user {
   emailVerified           DateTime?
   emailVerificationToken  String?   @db.VarChar(100)
   emailVerificationExpires DateTime?
+  passwordResetToken      String?   @db.VarChar(100)
+  passwordResetExpires    DateTime?
   image                   String?
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
