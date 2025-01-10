@@ -81,9 +81,9 @@
           "refId": "A"
         }
       ],
-      "title": "Request Rate",
+      "title": "HTTP Request Rate",
       "type": "timeseries",
-      "description": "Number of HTTP requests per second by method and route"
+      "description": "Shows how many HTTP requests per second your API receives, broken down by HTTP method (GET, POST, etc.) and endpoint path"
     },
     {
       "datasource": {
@@ -158,9 +158,9 @@
           "refId": "A"
         }
       ],
-      "title": "Average Response Time",
+      "title": "Response Time by Endpoint",
       "type": "timeseries",
-      "description": "Average response time in seconds by method and route"
+      "description": "Average time taken to respond to requests, shown in seconds for each API endpoint. Lower is better."
     },
     {
       "datasource": {
@@ -234,9 +234,9 @@
           "refId": "A"
         }
       ],
-      "title": "Error Rate (5xx)",
+      "title": "Server Error Rate",
       "type": "timeseries",
-      "description": "Rate of server errors (5xx status codes) per second"
+      "description": "Number of server errors (HTTP 500 status codes) per second. Spikes here indicate problems with your API."
     },
     {
       "datasource": {
@@ -473,9 +473,9 @@
           "refId": "C"
         }
       ],
-      "title": "CPU Usage",
+      "title": "CPU Load",
       "type": "timeseries",
-      "description": "CPU utilization percentage (0-100%) of the Node.js process"
+      "description": "Percentage of CPU being used by your application. High values may indicate performance bottlenecks."
     },
     {
       "datasource": {
@@ -549,105 +549,9 @@
           "refId": "A"
         }
       ],
-      "title": "HTTP Status Codes",
+      "title": "Response Status Codes",
       "type": "timeseries",
-      "description": "Distribution of HTTP response status codes per second"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Memory",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "line"
-            }
-          },
-          "mappings": [],
-          "unit": "bytes"
-        }
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 7,
-      "options": {
-        "legend": {
-          "calcs": ["mean", "max"],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "nodejs_heap_size_used_bytes",
-          "legendFormat": "Heap Used",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "nodejs_heap_size_total_bytes",
-          "legendFormat": "Heap Total",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "process_resident_memory_bytes",
-          "legendFormat": "Resident Memory",
-          "refId": "C"
-        }
-      ],
-      "title": "Memory Usage (Absolute)",
-      "type": "timeseries",
-      "description": "Node.js memory usage in bytes"
+      "description": "Distribution of HTTP response codes. 2xx=success, 4xx=client errors, 5xx=server errors"
     }
   ],
   "refresh": "5s",

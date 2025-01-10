@@ -1,40 +1,68 @@
 import { Request, Response } from "express";
-import { register } from "@/services/metrics.service";
-import { ApiResponse } from "@/utils/apiResponse";
-import os from "os";
+import { register, collectDefaultMetrics } from "prom-client";
+import { logger } from "@/config/logger";
 
 export class MonitoringController {
-  async getMetrics(_req: Request, res: Response) {
-    res.setHeader("Content-Type", register.contentType);
-    res.end(await register.metrics());
+  constructor() {
+    // Initialize default metrics collection
+    collectDefaultMetrics();
   }
 
-  async getHealth(_req: Request, res: Response) {
-    const healthInfo = {
+  getMetrics = async (req: Request, res: Response) => {
+    try {
+      const metrics = await register.metrics();
+      res.set("Content-Type", register.contentType);
+      res.send(metrics);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  };
+
+  getHealth = (req: Request, res: Response) => {
+    res.json({
       status: "ok",
       timestamp: new Date(),
       uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      cpu: {
-        load: os.loadavg(),
-        cores: os.cpus().length,
-      },
-      platform: {
-        node: process.version,
-        os: `${os.type()} ${os.release()}`,
-      },
-    };
+      memoryUsage: process.memoryUsage(),
+    });
+  };
 
-    ApiResponse.success(res, "Health check successful", healthInfo);
-  }
+  getReadiness = (req: Request, res: Response) => {
+    res.json({ status: "ok" });
+  };
 
-  async getReadiness(_req: Request, res: Response) {
-    // Add your readiness checks here (e.g., database connection)
-    ApiResponse.success(res, "Service is ready");
-  }
+  getLiveness = (req: Request, res: Response) => {
+    res.json({ status: "ok" });
+  };
 
-  async getLiveness(_req: Request, res: Response) {
-    // Basic check if the service is running
-    ApiResponse.success(res, "Service is alive");
-  }
+  // New method to handle AlertManager webhooks
+  handleAlert = (req: Request, res: Response) => {
+    try {
+      const alerts = req.body;
+      
+      // Log the received alerts
+      logger.info("Received alert from AlertManager", {
+        context: "AlertManager",
+        alerts: alerts
+      });
+
+      // Here you can add your own alert handling logic
+      // For example: sending to a chat system, creating tickets, etc.
+
+      res.status(200).json({
+        status: "success",
+        message: "Alert received and processed"
+      });
+    } catch (error) {
+      logger.error("Error processing alert", {
+        context: "AlertManager",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+      
+      res.status(500).json({
+        status: "error",
+        message: "Failed to process alert"
+      });
+    }
+  };
 }
