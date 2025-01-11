@@ -42,10 +42,24 @@ export const dbQueryDuration = new client.Histogram({
   buckets: [0.1, 0.5, 1, 2, 5],
 });
 
+// Add new WebSocket metrics
+export const websocketConnections = new client.Gauge({
+  name: 'websocket_connections_total',
+  help: 'Number of active WebSocket connections'
+});
+
+export const websocketMessages = new client.Counter({
+  name: 'websocket_messages_total',
+  help: 'Total number of WebSocket messages',
+  labelNames: ['type']
+});
+
 register.registerMetric(httpRequestDurationMicroseconds);
 register.registerMetric(httpRequestsTotal);
 register.registerMetric(errorRate);
 register.registerMetric(activeUsers);
 register.registerMetric(dbQueryDuration);
+register.registerMetric(websocketConnections);
+register.registerMetric(websocketMessages);
 
 export { register };

@@ -258,6 +258,95 @@ POST /api/auth/reset-password/:token
 3. User sets new password using reset token
 4. User can login with new password
 
+### WebSocket API:
+
+- Connection
+  - URL: `ws://localhost:4300`
+  - Secure URL: `wss://your-domain.com` (production)
+
+- Message Format:
+```javascript
+{
+  "type": "message_type",
+  "data": {
+    // message payload
+  }
+}
+```
+
+- Supported Message Types:
+  - `ping` - Health check ping
+    ```javascript
+    // Client -> Server
+    { "type": "ping" }
+    
+    // Server -> Client
+    { 
+      "type": "pong",
+      "data": { "timestamp": 1234567890 }
+    }
+    ```
+  - `connection` - Initial connection confirmation
+    ```javascript
+    // Server -> Client
+    {
+      "type": "connection",
+      "data": {
+        "clientId": "abc123",
+        "message": "Connected to WebSocket server"
+      }
+    }
+    ```
+
+### WebSocket Usage Example:
+
+```javascript
+// Connect to WebSocket server
+const ws = new WebSocket('ws://localhost:4300');
+
+// Handle connection open
+ws.onopen = () => {
+  console.log('Connected to WebSocket server');
+};
+
+// Handle incoming messages
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  console.log('Received:', message);
+  
+  // Handle different message types
+  switch (message.type) {
+    case 'connection':
+      console.log('Connected with ID:', message.data.clientId);
+      break;
+    case 'pong':
+      console.log('Ping response received');
+      break;
+  }
+};
+
+// Handle errors
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};
+
+// Handle connection close
+ws.onclose = () => {
+  console.log('Disconnected from WebSocket server');
+};
+
+// Send a ping message
+ws.send(JSON.stringify({ type: 'ping' }));
+```
+
+### WebSocket Security:
+
+- Authentication is required for certain message types
+- Rate limiting is applied to prevent abuse
+- Messages are validated for proper format and content
+- Connections are automatically closed after prolonged inactivity
+- SSL/TLS encryption is required in production
+
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
