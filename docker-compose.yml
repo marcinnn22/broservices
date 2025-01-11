@@ -21,7 +21,17 @@ services:
     networks:
       - app-network
     volumes:
-      - ./logs:/app/logs
+      - api_logs:/app/logs
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
 
   db:
     image: mysql:8.0
@@ -54,6 +64,9 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
     networks:
       - app-network
+    security_opt:
+      - no-new-privileges:true
+    user: "nobody"
 
   grafana:
     image: grafana/grafana:latest
@@ -78,6 +91,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
+    user: "472"
 
   node-exporter:
     image: prom/node-exporter:latest
@@ -109,6 +125,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  api_logs:
   mysql_data:
   grafana_data:
 

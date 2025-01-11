@@ -1,27 +1,40 @@
 # Build Stage
 FROM node:18-alpine as builder
 
+# Add non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 WORKDIR /app
 
+# Copy only necessary files first
 COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig*.json ./
 COPY .env.example ./.env
 
-RUN npm install
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
 COPY . .
 RUN npm run build
 
 # Production Stage
 FROM node:18-alpine
 
+# Add non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 WORKDIR /app
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/.env ./
+COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/package*.json ./
+COPY --from=builder --chown=appuser:appgroup /app/prisma ./prisma
+COPY --from=builder --chown=appuser:appgroup /app/.env ./
+
+# Switch to non-root user
+USER appuser
 
 EXPOSE 4300
 
