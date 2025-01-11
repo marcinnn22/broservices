@@ -1,8 +1,6 @@
 # Express TypeScript Boilerplate
 
-> 🚀 A modern, production-ready Express.js starter template built with TypeScript. Features JWT authentication, Prisma ORM, comprehensive testing, Docker support, and monitoring tools. Perfect for building scalable and secure REST APIs.
-
-A production-ready Express.js boilerplate with TypeScript, featuring robust authentication, logging, monitoring, and best practices for building secure and scalable APIs.
+🚀 A production-ready Express.js boilerplate with TypeScript, featuring robust authentication, logging, monitoring, and best practices for building secure and scalable APIs.
 
 ## Features
 
@@ -45,6 +43,8 @@ A production-ready Express.js boilerplate with TypeScript, featuring robust auth
 
 ## Getting Started
 
+### Local Development
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/mzubair481/express-boilerplate.git
@@ -72,19 +72,53 @@ npm run seed:dev
 npm run dev
 ```
 
-## Docker Setup
+### Docker Setup
 
 Run the entire stack using Docker Compose:
 
 ```bash
+# Start all services
 docker-compose up -d
+
+# View logs
+docker-compose logs -f api
 ```
 
 This will start:
-- Express API server
-- MySQL database
-- Prometheus for metrics
-- Grafana for monitoring
+- Express API server (http://localhost:4300)
+- MySQL database (port 3306)
+- Prometheus metrics (http://localhost:9090)
+- Grafana dashboards (http://localhost:3000)
+- Node Exporter (system metrics)
+- Alertmanager (alerts management)
+
+### Accessing Monitoring Tools
+
+1. **Grafana**:
+   - URL: http://localhost:3000
+   - Default credentials: 
+     - Username: `admin`
+     - Password: `admin`
+   - Pre-configured dashboards:
+     - API Metrics Dashboard
+     - System Metrics Dashboard
+
+2. **Prometheus**:
+   - URL: http://localhost:9090
+   - Metrics endpoint: http://localhost:4300/monitoring/metrics
+
+3. **Alertmanager**:
+   - URL: http://localhost:9093
+
+### Monitoring Features
+
+- Real-time metrics visualization
+- Request rate and latency tracking
+- Error rate monitoring
+- CPU and memory usage
+- Custom alerts configuration
+- System metrics via Node Exporter
+- Automated alert notifications
 
 ## Available Scripts
 
@@ -97,6 +131,25 @@ This will start:
 - `npm run migrate:dev` - Run database migrations
 - `npm run seed:dev` - Seed database with test data
 - `npm run studio` - Open Prisma Studio
+
+### Docker Commands
+
+```bash
+# Build and start services
+docker-compose up -d --build
+
+# Stop services
+docker-compose down
+
+# View logs
+docker-compose logs -f [service]
+
+# Restart a service
+docker-compose restart [service]
+
+# Remove volumes (database data)
+docker-compose down -v
+```
 
 ## Project Structure
 
