@@ -8,4 +8,10 @@ datasources:
     isDefault: true
     editable: true
     jsonData:
-      timeInterval: "5s" 
+      timeInterval: "5s"
+      queryTimeout: "30s"
+      httpMethod: "POST"
+    secureJsonData:
+      httpHeaderValue1: ""
+    version: 1
+    uid: prometheus 

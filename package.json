@@ -5,8 +5,12 @@
   "license": "MIT",
   "scripts": {
     "start": "node -r tsconfig-paths/register -r module-alias/register ./dist/src/index.js",
-    "dev": "rimraf dist && tsx watch src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "dev:clean": "rimraf dist && tsx watch src/index.ts",
     "build": "tsc -p . && tsc-alias",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up",
+    "docker:dev:build": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down -v",
     "seed:dev": "ts-node -P tsconfig.scripts.json scripts/dev.seed.ts",
     "seed:prod": "ts-node -P tsconfig.scripts.json scripts/prod.seed.ts",
     "migrate:dev": "npx prisma migrate dev",

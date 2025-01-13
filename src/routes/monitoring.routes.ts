@@ -1,8 +1,11 @@
 import { Router } from "express";
 import { MonitoringController } from "@/controllers/monitoring.controller";
+import { MetricsService } from "@/services/metrics.service";
+import { requireAuth } from "@/middleware/authMiddleware";
 
 const router = Router();
-const monitoringController = new MonitoringController();
+const metricsService = new MetricsService();
+const monitoringController = new MonitoringController(metricsService);
 
 /**
  * @swagger
@@ -29,7 +32,7 @@ const monitoringController = new MonitoringController();
  *       401:
  *         description: Unauthorized
  */
-router.get("/metrics", monitoringController.getMetrics);
+router.get("/metrics", monitoringController.getMetrics); // TODO: Add Authentication
 
 /**
  * @swagger

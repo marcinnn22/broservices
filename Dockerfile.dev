@@ -1,0 +1,30 @@
+FROM node:18-alpine
+
+# Add non-root user
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Install necessary tools
+RUN apk add --no-cache netcat-openbsd wget
+
+WORKDIR /app
+
+# Create directories and set permissions
+RUN mkdir -p node_modules dist && \
+    chown -R appuser:appgroup /app
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+COPY tsconfig*.json ./
+COPY scripts ./scripts/
+
+# Set permissions
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
+# Install dependencies
+RUN npm ci
+
+EXPOSE 4300 

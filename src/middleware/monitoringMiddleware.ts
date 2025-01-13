@@ -1,20 +1,26 @@
+import { Request, Response, NextFunction } from "express";
+import { MetricsService } from "@/services/metrics.service";
 import responseTime from "response-time";
-import { Request, Response } from "express";
-import {
-  httpRequestDuration,
-  httpRequestTotal
-} from "@/config/metrics";
+import { logger } from "@/config/logger";
 
-export const metricsMiddleware = responseTime(
-  (req: Request, res: Response, time: number) => {
-    const route = (req.baseUrl || "") + (req.route?.path || req.path || "/");
-    const statusCode = res.statusCode.toString();
-    const method = req.method || "UNKNOWN";
+const metricsService = new MetricsService();
 
-    httpRequestDuration
-      .labels(method, route, statusCode)
-      .observe(time / 1000);
+export const metricsMiddleware = responseTime((req: Request, res: Response, time: number) => {
+  try {
+    const route = req.route?.path || req.path || "/unknown";
+    
+    // Skip metrics endpoint to avoid recursion
+    if (route.startsWith('/monitoring/metrics')) {
+      return;
+    }
 
-    httpRequestTotal.labels(method, route, statusCode).inc();
+    metricsService.recordHttpRequest(
+      req.method,
+      route,
+      res.statusCode,
+      time / 1000
+    );
+  } catch (error) {
+    logger.error('Error recording metrics', { error });
   }
-);
+});
