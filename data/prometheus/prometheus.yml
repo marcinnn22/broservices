@@ -15,23 +15,11 @@ rule_files:
   - "rules/alerting_rules.yml"
 
 scrape_configs:
-  - job_name: "express-boilerplate"
-    # Add basic auth if needed
-    basic_auth:
-      username: ${PROMETHEUS_USER}
-      password: ${PROMETHEUS_PASSWORD}
-    # Adjust timeout to be less than interval
-    scrape_interval: 10s
-    scrape_timeout: 8s
-    metrics_path: "/monitoring/metrics"
+  - job_name: 'express-api'
+    metrics_path: '/monitoring/metrics'
     static_configs:
-      - targets: ["api:4300"]
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: "express-api"
-    honor_labels: true
-    scheme: http
+      - targets: ['api:4300']
+    scrape_interval: 5s
 
   - job_name: "prometheus"
     static_configs:

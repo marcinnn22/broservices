@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { MetricsService } from "@/services/metrics.service";
 import { BaseController } from "./base.controller";
 import { logger } from "@/config/logger";
+import { AppError } from "@/utils/appError";
 
 export class MonitoringController extends BaseController {
   constructor(private metricsService: MetricsService) {
@@ -63,6 +64,20 @@ export class MonitoringController extends BaseController {
         status: "success",
         message: "Alert received and processed"
       };
+    });
+  };
+
+  simulateError = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      const random = Math.random();
+      
+      if (random < 0.3) {
+        throw new AppError("Simulated 500 Internal Server Error", 500);
+      } else if (random < 0.6) {
+        throw new AppError("Simulated 400 Bad Request", 400);
+      } else {
+        throw new AppError("Simulated 503 Service Unavailable", 503);
+      }
     });
   };
 }

@@ -1,3 +1,4 @@
+import { ENV } from "@/config/env";
 import rateLimit from "express-rate-limit";
 
 export const authLimiter = rateLimit({
@@ -24,6 +25,12 @@ export const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    return Boolean(
+      req.path.startsWith('/monitoring') || // TODO: Skip all monitoring endpoints for now
+      req.headers['user-agent']?.includes('Prometheus')
+    );
+  }
 });
 
 export const verificationLimiter = rateLimit({

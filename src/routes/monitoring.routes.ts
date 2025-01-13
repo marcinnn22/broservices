@@ -128,4 +128,37 @@ router.get("/liveness", monitoringController.getLiveness);
  */
 router.post("/alerts", monitoringController.handleAlert);
 
+/**
+ * @swagger
+ * /monitoring/simulate-error:
+ *   get:
+ *     summary: Simulate random errors (for testing)
+ *     tags: [Monitoring]
+ *     responses:
+ *       400:
+ *         description: Bad Request Error
+ *       500:
+ *         description: Internal Server Error
+ *       503:
+ *         description: Service Unavailable
+ */
+router.get("/simulate-error", monitoringController.simulateError);
+
+router.get("/trigger-gc", async (req, res) => {
+  if (global.gc) {
+    global.gc();
+    res.json({ message: "GC triggered" });
+  } else {
+    res.status(400).json({ message: "GC not exposed. Run Node with --expose-gc flag" });
+  }
+});
+
+router.get("/simulate-memory-leak", (req, res) => {
+  const arr: any[] = [];
+  for (let i = 0; i < 1000000; i++) {
+    arr.push(new Array(1000).fill('test'));
+  }
+  res.json({ message: "Memory leak simulated" });
+});
+
 export default router;

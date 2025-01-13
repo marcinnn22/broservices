@@ -2,6 +2,15 @@
 
 🚀 A production-ready Express.js boilerplate with TypeScript, featuring robust authentication, logging, monitoring, and best practices for building secure and scalable APIs.
 
+> If this boilerplate helps your project take off, consider giving it a ⭐️ - it fuels my cosmic journey! 🌠
+
+# Dashboard Demo
+
+<video width="100%" controls>
+  <source src="./assets/express-api-dashboard-grafana.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 ## Features
 
 - **TypeScript** - Strongly typed language for better developer experience
@@ -78,10 +87,38 @@ Run the entire stack using Docker Compose:
 
 ```bash
 # Start all services
-docker-compose up -d
+npm run docker:dev
 
 # View logs
-docker-compose logs -f api
+npm run docker:dev:logs
+
+# Rebuild and start services
+npm run docker:dev:build
+
+# Stop services and remove volumes
+npm run docker:dev:down
+```
+
+#### Development with Hot Reload
+
+The development environment is configured with:
+- Nodemon for automatic server restart
+- Volume mounts for real-time code changes
+- TypeScript compilation on save
+- Environment variables for development
+
+```yaml
+# Key configurations in docker-compose.dev.yml
+services:
+  api:
+    volumes:
+      - ./src:/app/src:delegated        # Source code
+      - ./prisma:/app/prisma:delegated  # Prisma schema
+      - api_node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=1000
 ```
 
 This will start:
@@ -115,6 +152,8 @@ This will start:
 - Real-time metrics visualization
 - Request rate and latency tracking
 - Error rate monitoring
+- Garbage Collection metrics
+- Node.js process statistics
 - CPU and memory usage
 - Custom alerts configuration
 - System metrics via Node Exporter
@@ -124,7 +163,7 @@ This will start:
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm start` - Start production server
+- `npm start` - Start production server with GC metrics enabled
 - `npm test` - Run tests
 - `npm run test:e2e` - Run E2E tests
 - `npm run test:coverage` - Generate test coverage

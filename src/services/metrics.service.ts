@@ -1,6 +1,13 @@
 import client from "prom-client";
 import { logger } from "@/config/logger";
 import { singleton } from "@/decorators/singleton";
+import { performance, PerformanceObserver } from 'perf_hooks';
+
+interface GCPerformanceEntry extends PerformanceEntry {
+  detail?: {
+    kind: string;
+  };
+}
 
 @singleton
 export class MetricsService {
@@ -13,6 +20,9 @@ export class MetricsService {
   private websocketMessages!: client.Counter;
   private apiLatencyPercentiles!: client.Summary;
   private circuitBreakerState!: client.Gauge;
+  private httpErrors!: client.Counter;
+  private nodeProcessStats!: client.Gauge;
+  private gcStats!: client.Histogram;
 
   constructor() {
     this.register = new client.Registry();
@@ -21,7 +31,7 @@ export class MetricsService {
 
   private initializeMetrics(): void {
     try {
-      // Initialize default metrics with error handling
+      // Initialize default metrics with error handling (only once)
       client.collectDefaultMetrics({
         register: this.register,
         prefix: 'node_',
@@ -34,7 +44,7 @@ export class MetricsService {
       this.initializeBusinessMetrics();
       this.initializeDatabaseMetrics();
       this.initializeWebsocketMetrics();
-      this.initializeSystemMetrics();
+      this.initializeNodeMetrics();
     } catch (error) {
       logger.error('Failed to initialize metrics', { error });
       throw error;
@@ -62,6 +72,13 @@ export class MetricsService {
       help: 'HTTP request latency percentiles',
       percentiles: [0.5, 0.9, 0.95, 0.99],
       labelNames: ['method', 'route'],
+      registers: [this.register]
+    });
+
+    this.httpErrors = new client.Counter({
+      name: "http_errors_total",
+      help: "Total number of HTTP errors",
+      labelNames: ["method", "route", "status_code"],
       registers: [this.register]
     });
   }
@@ -99,13 +116,75 @@ export class MetricsService {
     });
   }
 
-  private initializeSystemMetrics(): void {
-    this.circuitBreakerState = new client.Gauge({
-      name: 'circuit_breaker_state',
-      help: 'Circuit breaker state (0: closed, 1: open, 0.5: half-open)',
-      labelNames: ['service'],
+  private initializeNodeMetrics(): void {
+    // Raw Node.js metrics
+    this.nodeProcessStats = new client.Gauge({
+      name: 'node_process_stats',
+      help: 'Node.js process statistics',
+      labelNames: ['stat'],
       registers: [this.register]
     });
+
+    // Enhanced GC metrics
+    this.gcStats = new client.Histogram({
+      name: 'node_gc_duration_seconds',
+      help: 'Garbage collection duration by type',
+      labelNames: ['gc_type'],
+      buckets: [0.001, 0.01, 0.1, 1, 2, 5],
+      registers: [this.register]
+    });
+
+    // Setup GC Performance Observer
+    try {
+      const obs = new PerformanceObserver((list) => {
+        const entries = list.getEntries() as GCPerformanceEntry[];
+        
+        entries.forEach((entry) => {
+          const gcType = entry.detail?.kind ?? 'unknown';
+          const duration = entry.duration / 1000; // Convert to seconds
+          
+          this.gcStats.observe({ gc_type: this.getGCType(gcType) }, duration);
+          
+          logger.debug('GC Event recorded', {
+            type: gcType,
+            duration,
+            startTime: entry.startTime,
+            detail: entry.detail
+          });
+        });
+      });
+      
+      obs.observe({ entryTypes: ['gc'] });
+      logger.info('GC monitoring enabled via performance hooks');
+    } catch (error) {
+      logger.warn('GC monitoring could not be enabled', { error });
+    }
+  }
+
+  private getGCType(type: string): string {
+    switch (type) {
+      case 'minor':
+        return 'Scavenge';
+      case 'major':
+        return 'MarkSweepCompact';
+      case 'incremental':
+        return 'IncrementalMarking';
+      case 'weakcb':
+        return 'WeakPhantomCallbackProcessing';
+      default:
+        return type;
+    }
+  }
+
+  private initializeSystemMetrics(): void {
+    try {
+      logger.info('System metrics initialized', {
+        metrics: this.register.getMetricsAsJSON()
+      });
+    } catch (error) {
+      logger.error('Failed to initialize system metrics', { error });
+      throw error;
+    }
   }
 
   // Public methods for recording metrics
@@ -146,7 +225,12 @@ export class MetricsService {
 
   public async getMetrics(): Promise<string> {
     try {
-      return await this.register.metrics();
+      const metrics = await this.register.metrics();
+      logger.debug('Metrics requested', {
+        metricsLength: metrics.length,
+        sampleMetrics: metrics.slice(0, 200) // Log first 200 chars for debugging
+      });
+      return metrics;
     } catch (error) {
       logger.error('Error generating metrics', { error });
       throw error;
@@ -155,5 +239,25 @@ export class MetricsService {
 
   public getContentType(): string {
     return this.register.contentType;
+  }
+
+  public recordHttpError(method: string, route: string, statusCode: number): void {
+    this.httpErrors.labels(method, route, statusCode.toString()).inc();
+  }
+
+  public updateNodeStats(): void {
+    const stats = process.memoryUsage();
+    this.nodeProcessStats.set({ stat: 'heap_used' }, stats.heapUsed);
+    this.nodeProcessStats.set({ stat: 'heap_total' }, stats.heapTotal);
+    this.nodeProcessStats.set({ stat: 'rss' }, stats.rss);
+    this.nodeProcessStats.set({ stat: 'external' }, stats.external);
+    
+    const cpuUsage = process.cpuUsage();
+    this.nodeProcessStats.set({ stat: 'cpu_user' }, cpuUsage.user);
+    this.nodeProcessStats.set({ stat: 'cpu_system' }, cpuUsage.system);
+  }
+
+  public recordGCStats(type: string, duration: number): void {
+    this.gcStats.observe({ gc_type: type }, duration);
   }
 }

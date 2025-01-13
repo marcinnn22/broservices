@@ -17,6 +17,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY tsconfig*.json ./
 COPY scripts ./scripts/
+COPY nodemon.json ./
 
 # Set permissions
 RUN chown -R appuser:appgroup /app
@@ -24,7 +25,10 @@ RUN chown -R appuser:appgroup /app
 # Switch to non-root user
 USER appuser
 
-# Install dependencies
-RUN npm ci
+# Install ALL dependencies (including devDependencies)
+RUN npm install
 
-EXPOSE 4300 
+EXPOSE 4300
+
+# Update CMD to use npx for running nodemon
+CMD ["npx", "nodemon"] 
