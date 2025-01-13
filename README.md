@@ -6,10 +6,7 @@
 
 # Dashboard Demo
 
-<video width="100%" controls>
-  <source src="./assets/express-api-dashboard-grafana.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Dashboard Demo](./assets/express-api-dashboard-grafana.gif)
 
 ## Features
 
