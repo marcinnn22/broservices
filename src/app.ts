@@ -17,6 +17,7 @@ import { ErrorMonitoringService } from "@/services/errorMonitoring.service";
 import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
 import swaggerUi from 'swagger-ui-express';
 import { specs } from './docs/swagger';
+import { notFoundHandler } from './middleware/notFound';
 
 const app = express();
 
@@ -98,5 +99,8 @@ app.use("/api/users", cache({ duration: 300 }));
 
 // Monitoring routes
 app.use("/monitoring", monitoringRoutes);
+
+// Add this as the last middleware (before error handler)
+app.use(notFoundHandler);
 
 export default app;
