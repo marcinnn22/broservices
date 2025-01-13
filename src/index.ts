@@ -15,6 +15,19 @@ WebSocketService.getInstance(server);
 const shutdown = async () => {
   logger.info("Shutdown signal received");
 
+  // Add WebSocket cleanup
+  const wsService = WebSocketService.getInstance();
+  wsService.broadcast({ type: 'shutdown', data: { message: 'Server shutting down' } });
+  
+  // Add connection draining
+  app.disable('connection'); // Stop accepting new connections
+  
+  // Add timeout for existing connections
+  const connectionDrainTimeout = setTimeout(() => {
+    logger.warn('Connection drain timeout reached, forcing shutdown');
+    process.exit(1);
+  }, 10000);
+  
   server.close(async () => {
     logger.info("HTTP server closed");
 

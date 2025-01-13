@@ -1,16 +1,21 @@
-import WebSocket from 'ws';
 import { Server } from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
 import { logger } from '@/config/logger';
 import { ErrorMonitoringService } from './errorMonitoring.service';
-import { websocketConnections, websocketMessages } from './metrics.service';
+import { websocketConnections, websocketMessages } from '../config/metrics';
+
+export interface WebSocketMessage {
+  type: 'ping' | 'pong' | 'error' | 'connection';
+  data: unknown;
+}
 
 export class WebSocketService {
   private static instance: WebSocketService;
-  private wss: WebSocket.Server;
+  private wss: WebSocketServer;
   private clients: Map<string, WebSocket>;
 
   private constructor(server: Server) {
-    this.wss = new WebSocket.Server({ server });
+    this.wss = new WebSocketServer({ server });
     this.clients = new Map();
     this.initialize();
   }
@@ -69,19 +74,13 @@ export class WebSocketService {
   }
 
   private handleMessage(clientId: string, message: any) {
-    logger.info({
-      message: 'WebSocket message received',
-      context: 'WebSocketService',
-      clientId,
-      messageType: message.type
-    });
-
-    // Handle different message types
     switch (message.type) {
       case 'ping':
-        this.sendToClient(clientId, { type: 'pong', data: { timestamp: Date.now() } });
+        this.sendToClient(clientId, { 
+          type: 'pong', 
+          data: { timestamp: Date.now() } 
+        });
         break;
-      // Add more message type handlers here
       default:
         this.sendToClient(clientId, { 
           type: 'error', 
@@ -107,5 +106,20 @@ export class WebSocketService {
 
   public getConnectedClients(): number {
     return this.clients.size;
+  }
+
+  private validateConnection(ws: WebSocket): boolean {
+    // Add connection validation logic
+    return true;
+  }
+
+  private setupHeartbeat(ws: WebSocket, clientId: string): void {
+    const interval = setInterval(() => {
+      if (ws.readyState !== WebSocket.OPEN) {
+        clearInterval(interval);
+        return;
+      }
+      ws.ping();
+    }, 30000);
   }
 } 

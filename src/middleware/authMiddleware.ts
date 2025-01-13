@@ -18,22 +18,16 @@ declare global {
   }
 }
 
-export const requireAuth = async (
+export const requireAuth = (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> => {
+): void => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith("Bearer ")) {
-      throw new AppError(
-        "Unauthorized - No token provided",
-        401,
-        ErrorCode.UNAUTHORIZED
-      );
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      throw new AppError("No token provided", 401, ErrorCode.UNAUTHORIZED);
     }
-
-    const token = authHeader.split(" ")[1];
     try {
       const decoded = jwt.verify(token, ENV.JWT_SECRET) as JwtPayload;
       req.user = decoded;

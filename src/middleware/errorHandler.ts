@@ -1,14 +1,24 @@
-import { ErrorRequestHandler } from "express";
-import { ErrorHandler } from "@/utils/errorHandler";
+import { Request, Response, NextFunction } from "express";
+import { AppError } from "@/utils/appError";
 import { ApiResponse } from "@/utils/apiResponse";
+import { logger } from "@/config/logger";
 
-export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
-  const handledError = ErrorHandler.handle(err, "GlobalErrorHandler");
+export const errorHandler = (
+  error: Error,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): void => {
+  logger.error({
+    message: error.message,
+    stack: error.stack,
+    context: "ErrorHandler",
+  });
 
-  ApiResponse.error(
-    res,
-    handledError.message,
-    handledError.statusCode,
-    handledError.code
-  );
+  if (error instanceof AppError) {
+    ApiResponse.error(res, error.message, error.statusCode);
+    return;
+  }
+
+  ApiResponse.error(res, "Internal server error", 500);
 };

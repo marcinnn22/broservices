@@ -14,38 +14,36 @@ import { cache } from "@/middleware/cacheMiddleware";
 import { metricsMiddleware } from "@/middleware/monitoringMiddleware";
 import monitoringRoutes from "@/routes/monitoring.routes";
 import { ErrorMonitoringService } from "@/services/errorMonitoring.service";
+import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
+import swaggerUi from 'swagger-ui-express';
+import { specs } from './docs/swagger';
 
 const app = express();
 
 // Initialize error monitoring
 ErrorMonitoringService.getInstance();
 
-// Add request ID middleware early in the chain
-app.use(requestId);
+// Group middleware by function
+const setupMiddleware = (app: express.Application) => {
+  // Security
+  app.use(requestId);
+  setupSecurityHeaders(app as express.Express);
+  app.use(cors({ origin: ENV.FRONTEND_URL, credentials: true }));
+  
+  // Performance
+  app.use(compressionMiddleware);
+  app.use(express.json({ limit: "10kb" }));
+  
+  // Monitoring
+  app.use(loggingMiddleware);
+  app.use(metricsMiddleware);
+  
+  // Rate Limiting
+  app.use("/api/auth", authLimiter);
+  app.use("/api", apiLimiter);
+};
 
-// Add logging middleware
-app.use(loggingMiddleware);
-
-// Add compression middleware
-app.use(compressionMiddleware);
-
-// Add metrics middleware
-app.use(metricsMiddleware);
-
-setupSecurityHeaders(app);
-app.use(express.json({ limit: "10kb" }));
-
-// CORS
-app.use(
-  cors({
-    origin: ENV.FRONTEND_URL,
-    credentials: true,
-  })
-);
-
-// Rate limiting
-app.use("/api/auth", authLimiter);
-app.use("/api", apiLimiter);
+setupMiddleware(app);
 
 // Routes
 app.get("/", (req, res) => {
@@ -65,10 +63,37 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
-// Error Handler
-app.use(errorHandler);
+// Move Swagger docs before error handler
+const swaggerOptions = {
+  explorer: true,
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    docExpansion: 'none',
+    filter: true,
+    showExtensions: true,
+    showCommonExtensions: true,
+    tryItOutEnabled: true
+  },
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Express TypeScript API Documentation"
+};
 
-// Apply cache middleware to routes that need it
+// Move monitoring routes before error handler
+app.use("/api/monitoring", monitoringRoutes);
+
+// Add Swagger documentation route at root level
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(specs, swaggerOptions));
+
+// Error Handler should be last
+const errorMiddleware: ErrorRequestHandler = (err, req, res, next) => {
+  return errorHandler(err, req, res, next);
+};
+
+app.use(errorMiddleware);
+
+// Move cache middleware before error handler
 app.use("/api/users", cache({ duration: 300 }));
 
 // Monitoring routes

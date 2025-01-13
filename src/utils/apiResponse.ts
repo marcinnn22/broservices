@@ -1,37 +1,20 @@
 import { Response } from "express";
-import { ErrorCode } from "./errorCodes";
 
 export class ApiResponse {
-  static success(
-    res: Response,
-    message: string,
-    data?: any,
-    statusCode: number = 200
-  ) {
-    return res.status(statusCode).json({
+  static success(res: Response, data: any = null, message: string = "Success"): void {
+    res.status(200).json({
       success: true,
       message,
       data,
     });
   }
 
-  static error(
-    res: Response,
-    message: string,
-    statusCode: number = 500,
-    code: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR,
-    stack?: string
-  ) {
-    const response: any = {
+  static error(res: Response, message: string, statusCode: number = 400, code?: string): void {
+    res.status(statusCode).json({
       success: false,
       message,
       code,
-    };
-
-    if (process.env.NODE_ENV === "development" && stack) {
-      response.stack = stack;
-    }
-
-    return res.status(statusCode).json(response);
+      ...(process.env.NODE_ENV === 'development' && { stack: new Error().stack })
+    });
   }
 }

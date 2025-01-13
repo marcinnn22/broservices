@@ -1,68 +1,47 @@
-import { Request, Response } from "express";
-import { register, collectDefaultMetrics } from "prom-client";
-import { logger } from "@/config/logger";
+import { Request, Response, NextFunction } from "express";
+import { register } from "@/config/metrics";
+import { BaseController } from "./base.controller";
 
-export class MonitoringController {
-  constructor() {
-    // Initialize default metrics collection
-    collectDefaultMetrics();
-  }
-
-  getMetrics = async (req: Request, res: Response) => {
-    try {
+export class MonitoringController extends BaseController {
+  getMetrics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
       const metrics = await register.metrics();
       res.set("Content-Type", register.contentType);
-      res.send(metrics);
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  };
-
-  getHealth = (req: Request, res: Response) => {
-    res.json({
-      status: "ok",
-      timestamp: new Date(),
-      uptime: process.uptime(),
-      memoryUsage: process.memoryUsage(),
+      return metrics;
     });
   };
 
-  getReadiness = (req: Request, res: Response) => {
-    res.json({ status: "ok" });
+  getHealth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      return {
+        status: "ok",
+        timestamp: new Date(),
+        uptime: process.uptime(),
+        memoryUsage: process.memoryUsage(),
+      };
+    });
   };
 
-  getLiveness = (req: Request, res: Response) => {
-    res.json({ status: "ok" });
+  getReadiness = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      return { status: "ok" };
+    });
   };
 
-  // New method to handle AlertManager webhooks
-  handleAlert = (req: Request, res: Response) => {
-    try {
+  getLiveness = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
+      return { status: "ok" };
+    });
+  };
+
+  handleAlert = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    await this.handleRequest(req, res, next, async () => {
       const alerts = req.body;
-      
-      // Log the received alerts
-      logger.info("Received alert from AlertManager", {
-        context: "AlertManager",
-        alerts: alerts
-      });
 
-      // Here you can add your own alert handling logic
-      // For example: sending to a chat system, creating tickets, etc.
-
-      res.status(200).json({
+      return {
         status: "success",
         message: "Alert received and processed"
-      });
-    } catch (error) {
-      logger.error("Error processing alert", {
-        context: "AlertManager",
-        error: error instanceof Error ? error.message : "Unknown error"
-      });
-      
-      res.status(500).json({
-        status: "error",
-        message: "Failed to process alert"
-      });
-    }
+      };
+    });
   };
 }

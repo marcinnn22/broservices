@@ -173,77 +173,116 @@ docker-compose down -v
 
 ## API Documentation
 
-API endpoints are documented using REST client files located in the `requests/` directory. These can be used with VS Code's REST Client extension.
+The API is fully documented using OpenAPI/Swagger. You can access the interactive documentation at:
 
-### Authentication Endpoints:
+```
+http://localhost:4300/api-docs
+```
 
-- Registration & Login
-  - POST `/api/auth/signup` - Register new user
-  - POST `/api/auth/login` - User login
-  - POST `/api/auth/refresh` - Refresh access token
-  - POST `/api/auth/logout` - User logout
+### API Endpoints
 
-- Email Verification
-  - GET `/api/auth/verify-email/:token` - Verify email address
-  - POST `/api/auth/send-email-verification` - Resend verification email
+#### Authentication
+- `POST /api/auth/signup` - Register new user
+- `POST /api/auth/login` - User login
+- `POST /api/auth/refresh` - Refresh access token
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/verify-email/:token` - Verify email
+- `POST /api/auth/send-email-verification` - Resend verification email
+- `POST /api/auth/forgot-password` - Request password reset
+- `POST /api/auth/reset-password/:token` - Reset password
 
-- Password Reset
-  - POST `/api/auth/forgot-password` - Request password reset email
-  - POST `/api/auth/reset-password/:token` - Reset password with token
+#### Users
+- `GET /api/users` - Get all users (Admin only)
+- `GET /api/users/:id` - Get user by ID
+- `POST /api/users` - Create user (Admin only)
+- `PATCH /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user (Admin only)
 
-### User Management:
+#### Monitoring
+- `GET /health` - Service health check
+- `GET /api/monitoring/metrics` - Prometheus metrics
+- `GET /api/monitoring/readiness` - Readiness probe
+- `GET /api/monitoring/liveness` - Liveness probe
 
-- Users (Protected Routes)
-  - GET `/api/users` - Get all users (Admin only)
-  - GET `/api/users/:id` - Get user by ID
-  - POST `/api/users` - Create user (Admin only)
-  - PATCH `/api/users/:id` - Update user (Admin only)
-  - DELETE `/api/users/:id` - Delete user (Admin only)
+### Authentication
 
-### Monitoring & Health:
+All protected endpoints require a valid JWT token in the Authorization header:
 
-- System
-  - GET `/health` - Service health check
-  - GET `/monitoring/metrics` - Prometheus metrics
+```
+Authorization: Bearer <your_jwt_token>
+```
 
-### Request Format Examples:
+### Request/Response Examples
 
-```bash
-# Sign Up
+#### User Registration
+```json
 POST /api/auth/signup
 {
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "name": "John Doe"
+}
+
+Response 201:
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "id": "uuid",
     "email": "user@example.com",
-    "name": "John Doe",
-    "password": "Password123!"
-}
-
-# Login
-POST /api/auth/login
-{
-    "email": "user@example.com",
-    "password": "Password123!"
-}
-
-# Resend Verification Email
-POST /api/auth/send-email-verification
-{
-    "email": "user@example.com"
-}
-
-# Request Password Reset
-POST /api/auth/forgot-password
-{
-    "email": "user@example.com"
-}
-
-# Reset Password
-POST /api/auth/reset-password/:token
-{
-    "password": "NewPassword123!"
+    "name": "John Doe"
+  }
 }
 ```
 
-### Authentication Flow:
+#### User Login
+```json
+POST /api/auth/login
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+
+Response 200:
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "accessToken": "jwt_token",
+    "refreshToken": "refresh_token"
+  }
+}
+```
+
+### Error Responses
+
+The API uses standardized error responses:
+
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "code": "ERR_XXXX",
+  "stack": "Error stack trace (development only)"
+}
+```
+
+### Rate Limiting
+
+- Auth endpoints: 5 requests per minute
+- API endpoints: 100 requests per minute
+- WebSocket connections: 60 messages per minute
+
+### Monitoring
+
+The API provides Prometheus metrics at `/api/monitoring/metrics` including:
+- HTTP request duration
+- Request counts by endpoint
+- Error rates
+- Active WebSocket connections
+- System metrics
+
+### Authentication Flow
 
 1. User signs up → Verification email sent
 2. User verifies email via link
@@ -346,6 +385,17 @@ ws.send(JSON.stringify({ type: 'ping' }));
 - Messages are validated for proper format and content
 - Connections are automatically closed after prolonged inactivity
 - SSL/TLS encryption is required in production
+
+### Error Codes
+
+The application uses structured error codes for better error handling:
+
+- 1xxx: Authentication Errors (e.g., ERR_1001)
+- 2xxx: Authorization Errors
+- 3xxx: Validation Errors
+- 4xxx: Resource Errors
+- 5xxx: Database Errors
+- 6xxx: Server Errors
 
 ## Contributing
 

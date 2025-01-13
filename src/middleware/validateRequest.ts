@@ -1,22 +1,23 @@
 import { Request, Response, NextFunction } from "express";
 import { AnyZodObject, ZodError } from "zod";
-import { ApiResponse } from "@/utils/apiResponse";
+import { ValidationError } from "@/utils/errorHandler";
 
-export const validateRequest =
-  (schema: AnyZodObject) =>
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const validateRequest = (schema: AnyZodObject) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     try {
-      await schema.parseAsync({
+      schema.parse({
         body: req.body,
         query: req.query,
         params: req.params,
+        headers: req.headers
       });
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        ApiResponse.error(res, error.errors[0].message, 400);
-      } else {
-        ApiResponse.error(res, "Invalid request data", 400);
+        next(new ValidationError(error.errors[0]?.message || "Validation failed"));
+        return;
       }
+      next(new ValidationError("Invalid request data"));
     }
   };
+};

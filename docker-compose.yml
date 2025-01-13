@@ -1,6 +1,7 @@
 services:
   api:
     build: .
+    env_file: .env
     ports:
       - "4300:4300"
     environment:
@@ -11,7 +12,8 @@ services:
       - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
       - FRONTEND_URL=${FRONTEND_URL}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4300/health"]
@@ -21,9 +23,16 @@ services:
     networks:
       - app-network
     volumes:
-      - api_logs:/app/logs
+      - ./logs:/app/logs
+    tmpfs:
+      - /tmp
+      - /run
     security_opt:
       - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     deploy:
       resources:
         limits:
@@ -32,26 +41,40 @@ services:
         reservations:
           cpus: '0.25'
           memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   db:
     image: mysql:8.0
+    env_file: .env
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=express-boilerplate
-      - MYSQL_USER=express-boilerplate
-      - MYSQL_PASSWORD=express-boilerplate
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-express-boilerplate}
+      MYSQL_USER: ${MYSQL_USER:-express-boilerplate}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-express-boilerplate}
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql:delegated
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+      - NET_BIND_SERVICE
     security_opt:
-      - no-new-privileges:true
+      - seccomp=unconfined
+    user: mysql
 
   prometheus:
     image: prom/prometheus:latest
@@ -64,8 +87,6 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yml"
     networks:
       - app-network
-    security_opt:
-      - no-new-privileges:true
     user: "nobody"
 
   grafana:
@@ -91,8 +112,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    security_opt:
-      - no-new-privileges:true
     user: "472"
 
   node-exporter:
@@ -126,9 +145,22 @@ services:
 
 volumes:
   api_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./logs
   mysql_data:
+    driver: local
   grafana_data:
+    driver: local
 
 networks:
   app-network:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+    driver_opts:
+      encrypt: "true"

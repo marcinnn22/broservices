@@ -30,4 +30,7 @@ export enum ErrorCode {
   INTERNAL_SERVER_ERROR = "ERR_6001",
   SERVICE_UNAVAILABLE = "ERR_6002",
   EXTERNAL_SERVICE_ERROR = "ERR_6003",
+
+  // Validation Errors (3xxx)
+  VALIDATION_ERROR = 'ERR_3006',
 }
