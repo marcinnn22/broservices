@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "main": "index.ts",
   "license": "MIT",
-  "type": "module",
   "scripts": {
     "start": "node -r tsconfig-paths/register -r module-alias/register ./dist/src/index.js",
-    "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "dev": "rimraf dist && tsx watch src/index.ts",
+    "build": "tsc -p . && tsc-alias",
     "seed:dev": "ts-node -P tsconfig.scripts.json scripts/dev.seed.ts",
     "seed:prod": "ts-node -P tsconfig.scripts.json scripts/prod.seed.ts",
     "migrate:dev": "npx prisma migrate dev",
