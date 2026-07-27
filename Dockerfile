@@ -1,45 +1,47 @@
-# Build Stage
-FROM node:18-alpine as builder
+# syntax=docker/dockerfile:1.7
 
-# Add non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
+FROM node:24-bookworm-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack install --global pnpm@11.17.0
 WORKDIR /app
 
-# Copy only necessary files first
-COPY package*.json ./
-COPY prisma ./prisma/
-COPY tsconfig*.json ./
-COPY .env.example ./.env
+FROM base AS dependencies
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY scripts/install-hooks.mjs ./scripts/install-hooks.mjs
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    CI=true pnpm install --frozen-lockfile
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy source code
+FROM dependencies AS build
 COPY . .
-RUN npm run build
+RUN pnpm build
 
-# Production Stage
-FROM node:18-alpine
+FROM base AS production-dependencies
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --prod --frozen-lockfile --ignore-scripts
 
-# Add non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+FROM base AS migrations
+ENV NODE_ENV=production
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml drizzle.config.ts ./
+COPY drizzle ./drizzle
+COPY src ./src
+USER node
+CMD ["./node_modules/.bin/drizzle-kit", "migrate"]
 
+FROM base AS development
+ENV NODE_ENV=development
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY . .
+CMD ["pnpm", "dev"]
+
+FROM node:24-bookworm-slim AS production
+ENV NODE_ENV=production
 WORKDIR /app
-
-COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
-COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
-COPY --from=builder --chown=appuser:appgroup /app/package*.json ./
-COPY --from=builder --chown=appuser:appgroup /app/prisma ./prisma
-COPY --from=builder --chown=appuser:appgroup /app/.env ./
-
-# Switch to non-root user
-USER appuser
-
+COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/dist ./dist
+COPY --chown=node:node package.json ./
+USER node
 EXPOSE 4300
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:4300/health || exit 1
-
-CMD ["npm", "start"] 
+CMD ["node", "--enable-source-maps", "dist/bootstrap/server.js"]

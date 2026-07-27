@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "biomejs.biome",
+    "editorconfig.editorconfig",
+    "humao.rest-client",
+    "ms-azuretools.vscode-docker"
+  ]
+}

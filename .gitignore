@@ -1,6 +1,30 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Build and test output
+dist/
+coverage/
+*.tsbuildinfo
+
+# Environment and secrets
 .env
-dist
+.env.*
+!.env.example
+!.env.test
+
+# Runtime output
 logs/
 *.log
-coverage/
+*.pid
+
+# Editors and operating systems
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# Local tooling
+lefthook-local.yml
+.pnpm-debug.log

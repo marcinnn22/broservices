@@ -1,0 +1,20 @@
+min_version: 2.1.10
+
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,json,jsonc,ts,yaml,yml}"
+      run: pnpm exec biome check --write --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+    typecheck:
+      glob: "*.{ts,json}"
+      run: pnpm typecheck
+
+pre-push:
+  parallel: true
+  commands:
+    test:
+      run: pnpm test
+    build:
+      run: pnpm build

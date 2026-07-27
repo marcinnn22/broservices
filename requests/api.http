@@ -1,0 +1,98 @@
+@baseUrl = http://localhost:4300
+@api = {{baseUrl}}/api/v1
+@email = developer@example.com
+@password = Correct-horse-battery-staple-7!
+@accessToken = paste-access-token-here
+@actionToken = paste-token-from-mailpit-here
+@metricsToken = development-only-metrics-token-change-me-please
+@userId = paste-user-id-here
+
+### API information
+GET {{api}}
+
+### Register
+POST {{api}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "name": "Developer Example",
+  "password": "{{password}}"
+}
+
+### Verify email
+POST {{api}}/auth/email/verify
+Content-Type: application/json
+
+{
+  "token": "{{actionToken}}"
+}
+
+### Login
+# The REST client keeps the HttpOnly refresh cookie for later requests.
+POST {{api}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Refresh and rotate session
+POST {{api}}/auth/refresh
+
+### Get current user
+GET {{api}}/users/me
+Authorization: Bearer {{accessToken}}
+
+### Update current user
+PATCH {{api}}/users/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Updated Developer"
+}
+
+### List users as administrator
+GET {{api}}/users?page=1&pageSize=20
+Authorization: Bearer {{accessToken}}
+
+### Change a user's role as administrator
+PATCH {{api}}/users/{{userId}}/role
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "role": "admin"
+}
+
+### Request password reset
+POST {{api}}/auth/password/forgot
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### Reset password
+POST {{api}}/auth/password/reset
+Content-Type: application/json
+
+{
+  "token": "{{actionToken}}",
+  "password": "A-new-correct-horse-battery-staple-8!"
+}
+
+### Log out current refresh session
+POST {{api}}/auth/logout
+
+### Liveness
+GET {{baseUrl}}/monitoring/liveness
+
+### Readiness
+GET {{baseUrl}}/monitoring/readiness
+
+### Metrics
+GET {{baseUrl}}/monitoring/metrics
+Authorization: Bearer {{metricsToken}}

@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785048852173,
+      "tag": "0000_initial_auth_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785056621314,
+      "tag": "0001_foamy_skreet",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785106257731,
+      "tag": "0002_tired_sunset_bain",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785120623179,
+      "tag": "0003_amusing_shard",
+      "breakpoints": true
+    }
+  ]
+}

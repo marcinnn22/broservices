@@ -1,141 +1,52 @@
-# Contributing to Express TypeScript Boilerplate
+# Contributing
 
-First off, thank you for considering contributing to this project! 🎉
+## Development setup
 
-## Table of Contents
+Use Node.js 24 and the pnpm version pinned in `package.json`.
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Process](#development-process)
-- [Pull Request Process](#pull-request-process)
-- [Coding Standards](#coding-standards)
-- [Commit Guidelines](#commit-guidelines)
-- [Running Tests](#running-tests)
-
-## Code of Conduct
-
-This project adheres to a Code of Conduct that all contributors are expected to follow. By participating, you are expected to uphold this code.
-
-### Our Standards
-
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints and experiences
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
-- Showing empathy towards other community members
-
-## Getting Started
-
-1. Fork the repository
-2. Clone your fork:
 ```bash
-git clone https://github.com/mzubair481/express-boilerplate.git
-```
-3. Create a new branch:
-```bash
-git checkout -b feature/your-feature-name
-```
-4. Set up development environment:
-```bash
-npm install
+corepack enable
+pnpm install
 cp .env.example .env
+docker compose up -d postgres mailpit
+pnpm db:migrate
+pnpm dev
 ```
 
-## Development Process
+Lefthook installs through the package `prepare` script. The pre-commit hook applies Biome fixes to
+staged files and runs TypeScript; the pre-push hook runs tests and the production build.
 
-1. Create a feature branch from `main`
-2. Make your changes
-3. Write or update tests
-4. Update documentation
-5. Submit a pull request
-
-### Branch Naming Convention
-
-- Feature: `feature/your-feature-name`
-- Bug fix: `fix/issue-description`
-- Documentation: `docs/what-you-documented`
-- Performance: `perf/what-you-optimized`
-
-## Pull Request Process
-
-1. Update the README.md with details of changes if applicable
-2. Update the documentation
-3. Add tests for new functionality
-4. Ensure the test suite passes
-5. Update the CHANGELOG.md
-6. The PR must be reviewed by at least one maintainer
-
-### PR Title Format
-
-```
-type(scope): description
-
-Examples:
-feat(auth): add refresh token functionality
-fix(database): resolve connection pooling issue
-docs(readme): update deployment instructions
-```
-
-## Coding Standards
-
-### TypeScript
-
-- Use TypeScript's strict mode
-- Properly type all functions and variables
-- Use interfaces over types when possible
-- Document complex functions with JSDoc comments
-
-### Code Style
-
-- Use 2 spaces for indentation
-- Use single quotes for strings
-- Add trailing commas in objects and arrays
-- Use meaningful variable names
-- Keep functions small and focused
-- Use async/await over raw promises
-
-## Commit Guidelines
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer(s)]
-```
-
-### Types
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc)
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
-
-## Running Tests
-
-Before submitting a PR, ensure all tests pass:
+## Before opening a change
 
 ```bash
-# Run all tests
-npm test
-
-# Run E2E tests
-npm run test:e2e
-
-# Check test coverage
-npm run test:coverage
+pnpm verify
+pnpm db:check
 ```
 
-## Questions or Problems?
+Run PostgreSQL integration tests when persistence behavior changes:
 
-- Open an issue for bugs
-- Use discussions for questions
-- Tag maintainers for urgent issues
+```bash
+docker compose --profile test up -d postgres-test
+DATABASE_URL=postgresql://boilerplate:boilerplate@localhost:5433/boilerplate_test pnpm db:migrate
+RUN_INTEGRATION_TESTS=true pnpm test:integration
+```
 
-Thank you for contributing! 🚀
+## Architecture rules
+
+- Put business behavior in the owning feature module.
+- Domain and application code must not import Express or Drizzle.
+- HTTP adapters call use cases, not repositories.
+- Infrastructure adapters implement application ports.
+- Add concrete wiring only in the composition root.
+- Keep metric labels bounded and logs free of credentials and request bodies.
+- Generate a new migration for schema changes; never rewrite shared migration history.
+- Keep changes focused and include tests at the lowest useful boundary.
+
+See [architecture.md](./architecture.md) for the rationale and diagrams.
+
+## Commit hygiene
+
+- Commit `pnpm-lock.yaml` with dependency changes.
+- Commit generated Drizzle SQL and metadata with schema changes.
+- Do not commit `.env`, credentials, local volumes, build output, or coverage output.
+- Explain operational or security tradeoffs in the pull request.

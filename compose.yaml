@@ -1,0 +1,159 @@
+name: express-postgres-boilerplate
+
+services:
+  postgres:
+    image: postgres:18.4-alpine3.24
+    environment:
+      POSTGRES_DB: boilerplate
+      POSTGRES_USER: boilerplate
+      POSTGRES_PASSWORD: boilerplate
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres18-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boilerplate -d boilerplate"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  postgres-test:
+    profiles: ["test"]
+    image: postgres:18.4-alpine3.24
+    environment:
+      POSTGRES_DB: boilerplate_test
+      POSTGRES_USER: boilerplate
+      POSTGRES_PASSWORD: boilerplate
+    ports:
+      - "${POSTGRES_TEST_PORT:-5433}:5432"
+    volumes:
+      - postgres18-test-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boilerplate -d boilerplate_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      target: migrations
+    environment:
+      DATABASE_URL: postgresql://boilerplate:boilerplate@postgres:5432/boilerplate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  mailpit:
+    image: axllent/mailpit:v1.30.0
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      target: production
+    environment:
+      NODE_ENV: development
+      APP_NAME: Express Postgres Boilerplate
+      APP_VERSION: 2.0.0
+      HOST: 0.0.0.0
+      PORT: 4300
+      PUBLIC_URL: http://localhost:4300
+      API_PREFIX: /api/v1
+      WEB_APP_URL: http://localhost:5173
+      DATABASE_URL: postgresql://boilerplate:boilerplate@postgres:5432/boilerplate
+      JWT_ACCESS_SECRET: compose-development-secret-that-must-not-be-used-in-production
+      JWT_ISSUER: express-postgres-boilerplate
+      JWT_AUDIENCE: express-postgres-boilerplate-client
+      CORS_ORIGINS: http://localhost:5173
+      REFRESH_COOKIE_SECURE: "false"
+      LOG_PRETTY: "false"
+      API_DOCS_ENABLED: "true"
+      MAIL_TRANSPORT: smtp
+      MAIL_FROM: Express Boilerplate <noreply@example.com>
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      METRICS_ENABLED: "true"
+      METRICS_BEARER_TOKEN: local-prometheus-metrics-token-change-before-deploying
+      ALERT_WEBHOOK_ENABLED: "true"
+      ALERT_WEBHOOK_TOKEN: local-alertmanager-token-change-before-deploying
+    ports:
+      - "4300:4300"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mailpit:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4300/monitoring/readiness').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.12.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./data/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./data/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      api:
+        condition: service_healthy
+      alertmanager:
+        condition: service_started
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:v0.32.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./data/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./data/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  alertmanager-data:
+  grafana-data:
+  postgres18-data:
+  postgres18-test-data:
+  prometheus-data:

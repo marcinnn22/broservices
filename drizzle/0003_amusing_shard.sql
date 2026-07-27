@@ -1,0 +1,6 @@
+ALTER TABLE "auth_email_requests" ADD COLUMN "action_token" varchar(128);--> statement-breakpoint
+ALTER TABLE "auth_email_requests" ADD COLUMN "action_token_hash" char(64);--> statement-breakpoint
+ALTER TABLE "auth_email_requests" ADD COLUMN "action_token_created_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "auth_email_requests" ADD COLUMN "action_token_expires_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "auth_email_requests" ADD CONSTRAINT "auth_email_requests_action_token_consistency_check" CHECK (("auth_email_requests"."action_token" IS NULL AND "auth_email_requests"."action_token_hash" IS NULL AND "auth_email_requests"."action_token_created_at" IS NULL AND "auth_email_requests"."action_token_expires_at" IS NULL) OR ("auth_email_requests"."action_token" IS NOT NULL AND "auth_email_requests"."action_token_hash" IS NOT NULL AND "auth_email_requests"."action_token_created_at" IS NOT NULL AND "auth_email_requests"."action_token_expires_at" IS NOT NULL AND "auth_email_requests"."action_token_expires_at" > "auth_email_requests"."action_token_created_at"));--> statement-breakpoint
+ALTER TABLE "auth_email_requests" ADD CONSTRAINT "auth_email_requests_action_token_hash_format_check" CHECK ("auth_email_requests"."action_token_hash" IS NULL OR "auth_email_requests"."action_token_hash" ~ '^[0-9a-f]{64}$');

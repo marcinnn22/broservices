@@ -1,0 +1,19 @@
+packages:
+  - "."
+
+engineStrict: true
+strictPeerDependencies: true
+autoInstallPeers: false
+minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
+
+overrides:
+  "@esbuild-kit/core-utils>esbuild": 0.25.12
+  ip-address: 10.3.0
+
+allowBuilds:
+  cpu-features: false
+  esbuild: true
+  lefthook: true
+  protobufjs: true
+  ssh2: false

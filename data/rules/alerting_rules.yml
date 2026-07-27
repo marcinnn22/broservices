@@ -1,44 +1,29 @@
 groups:
-  - name: cpu_alerts
+  - name: express_api_alerts
     rules:
-      - alert: HighCPUUsage
-        expr: rate(process_cpu_user_seconds_total[1m]) * 100 > 80
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High CPU Usage detected"
-          description: "CPU Usage is above 80% for 5 minutes"
-
-  - name: memory_alerts
-    rules:
-      - alert: HighMemoryUsage
-        expr: (nodejs_heap_size_used_bytes / nodejs_heap_size_total_bytes) * 100 > 85
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High Memory Usage detected"
-          description: "Memory Usage is above 85% for 5 minutes"
-
-  - name: error_alerts
-    rules:
-      - alert: HighErrorRate
-        expr: rate(http_requests_total{status=~"5.*"}[5m]) > 1
-        for: 2m
+      - alert: ExpressApiDown
+        expr: up{job="express-api"} == 0
+        for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "High Error Rate detected"
-          description: "5xx error rate is above 1 req/sec for 2 minutes"
+          summary: Express API is unavailable
+          description: Prometheus has been unable to scrape the API for one minute.
 
-  - name: express_alerts
-    rules:
-      - alert: HighRequestLatency
-        expr: http_request_duration_seconds > 1
-        for: 1m
+      - alert: ExpressApiHighErrorRate
+        expr: job:http_errors:ratio5m{job="express-api"} > 0.05
+        for: 10m
         labels:
           severity: warning
         annotations:
-          summary: "High request latency on {{ $labels.instance }}"
-          description: "Request latency is above 1s (current value: {{ $value }}s)" 
+          summary: Express API has a high server-error rate
+          description: More than 5% of requests have returned 5xx responses for ten minutes.
+
+      - alert: ExpressApiHighLatency
+        expr: job:http_request_duration_seconds:p95_5m{job="express-api"} > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Express API p95 latency is high
+          description: The five-minute p95 request latency has exceeded one second for ten minutes.
