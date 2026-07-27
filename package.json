@@ -5,6 +5,35 @@
   "type": "module",
   "private": true,
   "license": "MIT",
+  "author": {
+    "name": "M Zubair",
+    "url": "https://github.com/mzubair481"
+  },
+  "keywords": [
+    "api",
+    "argon2",
+    "authentication",
+    "biome",
+    "boilerplate",
+    "docker",
+    "drizzle-orm",
+    "express",
+    "grafana",
+    "nodejs",
+    "openapi",
+    "postgresql",
+    "prometheus",
+    "typescript",
+    "vitest"
+  ],
+  "homepage": "https://github.com/mzubair481/express-boilerplate#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mzubair481/express-boilerplate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mzubair481/express-boilerplate/issues"
+  },
   "engines": {
     "node": ">=24.0.0",
     "pnpm": ">=11.0.0"

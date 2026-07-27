@@ -37,6 +37,13 @@ COPY . .
 CMD ["pnpm", "dev"]
 
 FROM node:24-bookworm-slim AS production
+LABEL org.opencontainers.image.title="Express + PostgreSQL Boilerplate" \
+      org.opencontainers.image.description="Production-ready Express 5 and TypeScript API boilerplate with PostgreSQL and Drizzle ORM" \
+      org.opencontainers.image.url="https://github.com/mzubair481/express-boilerplate" \
+      org.opencontainers.image.source="https://github.com/mzubair481/express-boilerplate" \
+      org.opencontainers.image.documentation="https://github.com/mzubair481/express-boilerplate#readme" \
+      org.opencontainers.image.version="2.0.0" \
+      org.opencontainers.image.licenses="MIT"
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules

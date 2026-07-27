@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose a focused improvement to the boilerplate
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What boilerplate use case is difficult or unsupported today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior, boundaries, and developer experience you propose.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Explain viable alternatives and their tradeoffs.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Compatibility and operational impact
+      description: Note API, configuration, migration, security, performance, or monitoring implications.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This belongs in a reusable API boilerplate rather than one specific application.
+          required: true

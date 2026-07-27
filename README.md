@@ -1,5 +1,12 @@
 # Express + PostgreSQL Boilerplate
 
+[![CI](https://github.com/mzubair481/express-boilerplate/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mzubair481/express-boilerplate/actions/workflows/ci.yml)
+[![MIT License](https://img.shields.io/github/license/mzubair481/express-boilerplate)](./LICENSE)
+[![Node.js 24+](https://img.shields.io/badge/Node.js-24%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![pnpm 11](https://img.shields.io/badge/pnpm-11-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
+
+![Express and PostgreSQL production-ready API boilerplate](./assets/social-preview.png)
+
 A clean-slate, production-oriented API boilerplate built with Express 5, TypeScript, PostgreSQL,
 and Drizzle. It uses a modular monolith, feature-first folders, ports and adapters at useful
 boundaries, and a manual composition root.
@@ -72,6 +79,9 @@ and architectural tradeoffs.
 - pnpm 11, Biome 2, Lefthook 2, strict TypeScript, Docker Compose, and GitHub Actions.
 
 ## Quick start
+
+Select **Use this template** on GitHub to create a repository without inheriting this project’s Git
+history, then clone your new repository.
 
 Requirements:
 
@@ -275,6 +285,16 @@ periodically according to `AUTH_CLEANUP_INTERVAL`.
 Password reset commits token consumption, password/auth-version update, and refresh-session
 revocation in one PostgreSQL transaction. The password-changed email is sent only after commit and
 cannot turn a completed reset into a failure response.
+
+## Contributing, support, and security
+
+- Read [CONTRIBUTING.md](./CONTRIBUTING.md) before proposing a change.
+- Use [GitHub Discussions](https://github.com/mzubair481/express-boilerplate/discussions) for usage
+  questions and [GitHub Issues](https://github.com/mzubair481/express-boilerplate/issues) for
+  reproducible defects.
+- Report vulnerabilities privately by following [SECURITY.md](./SECURITY.md).
+
+Maintained by [M Zubair](https://github.com/mzubair481).
 
 ## License
 
